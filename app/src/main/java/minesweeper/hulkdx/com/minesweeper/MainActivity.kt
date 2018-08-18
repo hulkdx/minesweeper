@@ -6,6 +6,8 @@ import android.view.WindowManager
 
 class MainActivity : AppCompatActivity() {
 
+    private var game: Game? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -13,10 +15,14 @@ class MainActivity : AppCompatActivity() {
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
 
         // Create and start game:
-        val game = Game(this)
-        game.start()
+        game = Game(this)
 
         // set content to MainView
-        setContentView(game.getMainView())
+        setContentView(game?.getMainView())
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // TODO remove resources here: 
     }
 }
