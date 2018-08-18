@@ -2,6 +2,7 @@ package minesweeper.hulkdx.com.minesweeper
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.view.MotionEvent
 import android.view.WindowManager
 
 class MainActivity : AppCompatActivity() {
@@ -23,6 +24,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // TODO remove resources here: 
+        game?.onDestroy()
     }
 }

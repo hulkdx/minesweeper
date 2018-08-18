@@ -1,7 +1,7 @@
 package minesweeper.hulkdx.com.minesweeper
 
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import minesweeper.hulkdx.com.minesweeper.util.convertDpToPixel
 import minesweeper.hulkdx.com.minesweeper.views.Block
 import minesweeper.hulkdx.com.minesweeper.views.BlockView
 import minesweeper.hulkdx.com.minesweeper.views.MainView
@@ -11,6 +11,9 @@ import minesweeper.hulkdx.com.minesweeper.views.MainView
  */
 class ViewManager {
 
+    private val defaultBlockWidthDp: Int = 30
+    val defaultBlockWidthPx: Int
+
     private val mMainView: MainView
     private val mBlocks: Array<Array<BlockView>>
 
@@ -19,14 +22,13 @@ class ViewManager {
                 num_row:  Int,
                 num_col:  Int)
     {
-        val blockBitmap  = BitmapFactory.decodeResource(mainActivity.resources,
-                                                        R.drawable.block)
-        mMainView        = MainView(mainActivity)
-        mBlocks          = Array(num_col) {
-            col -> Array(num_row) {
-                BlockView(mainActivity, it, col, blockBitmap)
-            }
-        }
+        defaultBlockWidthPx = convertDpToPixel(defaultBlockWidthDp, 
+                                               mainActivity).toInt()
+        mMainView           = MainView(mainActivity)
+        mBlocks             = BlockView.createBlocks(mainActivity, 
+                                                     num_col, 
+                                                     num_row, 
+                                                     defaultBlockWidthPx)
     }
 
     fun lockCanvasAndDraw() {
@@ -67,5 +69,13 @@ class ViewManager {
 
     fun getBlock(x: Int, y: Int): Block {
         return mBlocks[y][x]
+    }
+
+    fun getBlockSizeX() : Int {
+        return mBlocks[0].size
+    }
+
+    fun getBlockSizeY() : Int {
+        return mBlocks.size
     }
 }

@@ -27,4 +27,8 @@ class MainView: SurfaceView {
     override fun draw(canvas: Canvas?) {
         super.draw(canvas)
     }
+
+    override fun performClick(): Boolean {
+        return true
+    }
 }
