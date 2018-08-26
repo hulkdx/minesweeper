@@ -13,6 +13,7 @@ open class Block {
     val row: Int
     val col: Int
     var numNeighborBombs: Int = 0 // TODO
+    var isRevealed: Boolean   = false
 
     var isBomb  = false
 
@@ -33,10 +34,7 @@ open class Block {
     fun decreaseNeighborBombs() {
         numNeighborBombs -= 1
     }
-    
-    fun reveal() {
-        // TODO
-    }
+
     
 
     //

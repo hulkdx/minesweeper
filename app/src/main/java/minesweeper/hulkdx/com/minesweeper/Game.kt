@@ -7,6 +7,7 @@ import android.view.View
 import minesweeper.hulkdx.com.minesweeper.R.drawable.block
 import minesweeper.hulkdx.com.minesweeper.util.SmartTimer
 import minesweeper.hulkdx.com.minesweeper.views.Block
+import minesweeper.hulkdx.com.minesweeper.views.BlockView
 import java.util.*
 
 /**
@@ -46,6 +47,11 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
                 num_col:  Int = DEFAULT_COL,
                 num_bomb: Int = DEFAULT_BOMB)
     {
+        // TODO add these rules: 
+        // rules based on one website: 
+        // width: 8-100
+        // height: 8-100
+        // bombs: 1-1/3square
         mNumRow  = num_row
         mNumCol  = num_col
         mNumBomb = num_bomb
@@ -127,7 +133,9 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
         On Clicking block:
      */
     private fun onClickBlock(block: Block) {
-        Log.d(TAG, "onClickBlock")
+        // Log.d(TAG, "onClickBlock")
+        val blockView: BlockView = block as BlockView
+
         // Should never starts with a bomb:
         if (mFirstTimeBlockClicked) {
             Log.d(TAG, "firstTime: $mFirstTimeBlockClicked, isBomb: ${block.isBomb}, clicked, row:${block.row}, col:${block.col}")
@@ -150,14 +158,14 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
                 }
                 makeRandomBombBlocks(0, mNumRow, mNumCol)
             }
-            block.firstReveal
+            blockView.revealOnStart(mViewManger)
             return
         }
         if (block.isBomb) {
             gameOver()
         }
         else {
-            block.reveal()
+            blockView.reveal(mViewManger)
             // TODO reveal 0 bombs and reveal itself:
         }
     }
