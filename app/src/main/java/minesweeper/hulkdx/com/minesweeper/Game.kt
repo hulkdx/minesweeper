@@ -6,6 +6,7 @@ import android.view.SurfaceHolder
 import android.view.View
 import minesweeper.hulkdx.com.minesweeper.R.drawable.block
 import minesweeper.hulkdx.com.minesweeper.util.SmartTimer
+import minesweeper.hulkdx.com.minesweeper.views.Block
 import java.util.*
 
 /**
@@ -15,10 +16,13 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
 
 
     companion object {
+        internal const val DELAY_CLICK_MILIS = 500 // Is this too much? 
+        
         internal const val OPTIONAL_FPS = 30
         internal const val DEFAULT_ROW  = 4
         internal const val DEFAULT_COL  = 5
-        internal const val DEFAULT_BOMB = 1
+        internal const val DEFAULT_BOMB = 2
+        
         internal const val TAG = "GAME_MAIN"
     }
 
@@ -27,6 +31,11 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
     private val mSmartTimer: SmartTimer
     private var mRunningThread = false
     private var mStopped       = false
+    private var mFirstTimeBlockClicked = true
+    private val mNumRow:  Int
+    private val mNumCol:  Int
+    private val mNumBomb: Int
+    private var mLastTimeMsClicked = 0L
 
     //
     // Constructors
@@ -37,6 +46,10 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
                 num_col:  Int = DEFAULT_COL,
                 num_bomb: Int = DEFAULT_BOMB)
     {
+        mNumRow  = num_row
+        mNumCol  = num_col
+        mNumBomb = num_bomb
+         
         mViewManger      = ViewManager(mainActivity, num_row, num_col)
         mViewManger.getMainView().holder.addCallback(this)
         mSmartTimer      = SmartTimer()
@@ -47,6 +60,9 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
     // Game Loop: 
     //
 
+    /* 
+        Rendering and waiting and ... logics.
+     */
     override fun run() {
         while (isRunning()) {
             mSmartTimer.start()
@@ -72,6 +88,9 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
     }
 
 
+    /* 
+        Start the thread
+     */
     private fun startThread() {
         if (isRunning()) {
             Log.e(TAG, "Thread is already running!!")
@@ -84,6 +103,9 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
         mThread!!.start()
     }
 
+    /* 
+        Stop the thread
+     */
     private fun stopThread() {
         Log.d(TAG, "stopThread")
         while (!mStopped) {
@@ -96,18 +118,76 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
             }
         }
     }
+    
+    //
+    // Game Logics:
+    //
+    
+    /*
+        On Clicking block:
+     */
+    private fun onClickBlock(block: Block) {
+        Log.d(TAG, "onClickBlock")
+        // Should never starts with a bomb:
+        if (mFirstTimeBlockClicked) {
+            Log.d(TAG, "firstTime: $mFirstTimeBlockClicked, isBomb: ${block.isBomb}, clicked, row:${block.row}, col:${block.col}")
+            mFirstTimeBlockClicked = false
+            if (block.isBomb) {
+                // 
+                // First time clicked the block is a bomb!
+                // Make a new bomb and remove the bomb from this block
+                // 
+                makeRandomBombBlocks(1, mNumRow, mNumCol)
+                // Set bomb false and decrease neighbor bombs 
+                block.isBomb = false
+
+                for (j in block.col-1..block.col+1) {
+                    for (i in block.row-1..block.row+1) {
+                        if (i == block.row && j == block.col) continue
+                        val neighborBlock = mViewManger.getBlockOrNull(i, j)
+                        neighborBlock?.decreaseNeighborBombs()
+                    }
+                }
+                makeRandomBombBlocks(0, mNumRow, mNumCol)
+            }
+            block.firstReveal
+            return
+        }
+        if (block.isBomb) {
+            gameOver()
+        }
+        else {
+            block.reveal()
+            // TODO reveal 0 bombs and reveal itself:
+        }
+    }
+    
+    /*  
+        GAME OVER 
+     */
+    fun gameOver() {
+        // TODO Render GameOver
+    }
 
     //
-    // surface callbacks:
+    // Surface callbacks:
     //
 
     override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) {}
 
+    /* 
+        onDestory surfaceView (MainView), 
+     */
     override fun surfaceDestroyed(holder: SurfaceHolder?) {
         stopThread()
         mViewManger.getMainView().setOnTouchListener(null)
     }
 
+    /* 
+        onCreate surfaceView (MainView), start thread and register touch 
+        listener.
+        Note: Thread should be start here.
+     */
     override fun surfaceCreated(holder: SurfaceHolder?) {
         startThread()
         mViewManger.getMainView().setOnTouchListener(this)
@@ -117,6 +197,9 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
     // Misc
     //
 
+    // 
+    // TODO: is there a better way of doing this? 
+    // 
     private fun makeRandomBombBlocks(num_bomb: Int, num_row: Int, num_col: Int) {
 
         val random = Random()
@@ -130,26 +213,52 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
 
             val block = mViewManger.getBlock(randomX, randomY)
             if (!block.isBomb) {
+                // Update the neighbor bombs:
+                for (i in randomX-1..randomX+1) {
+                    for (j in randomY-1..randomY+1) {
+                        val block = mViewManger.getBlockOrNull(i, j)
+                        block?.increaseNeighborBombs()
+                    }
+                }
+                
                 block.isBomb = true
+                retry        = 0
                 i++
-                retry = 0
-            } else {
+            } 
+            else {
                 retry++
-                if (retry==50) {
+                // Note: this should never happens.
+                // Note: another way of doing it is, remove the bomb blocks from 
+                //       the array.
+                if (retry == 50) {
                     throw Exception("Cannot make this much bombs!")
                 }
             }
         }
+
+        mViewManger.dumpBlocks()
     }
     
+    /* 
+        onDestroy MainActivity... unregistered callbacks and other resources.
+     */
     fun onDestroy() {
         stopThread()
         mViewManger.getMainView().holder.removeCallback(this)
         mViewManger.getMainView().setOnTouchListener(null)
     }
 
+    /* 
+        Touching events registered by MainView.
+        It will start registering when surface created. And unregistered after 
+        its destroyed.
+     */
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
-        // TODO prevent spamming
+        if (System.currentTimeMillis() - mLastTimeMsClicked <= DELAY_CLICK_MILIS) {
+            Log.d(TAG, "Touched before ${DELAY_CLICK_MILIS}ms, skippin.")
+            return false
+        }
+        mLastTimeMsClicked = System.currentTimeMillis()
 
         val eventX: Float = event?.x ?: 0F
         val eventY: Float = event?.y ?: 0F
@@ -158,22 +267,15 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
 
         val blockX = eventX.toInt() / px
         val blockY = eventY.toInt() / px
-        println("blockX=$blockX, blockY=$blockY")
+        // println("blockX=$blockX, blockY=$blockY")
 
         val blockSizeX = mViewManger.getBlockSizeX()
-        val blockSizeY = mViewManger.getBlockSizeX()
+        val blockSizeY = mViewManger.getBlockSizeY()
 
         // Check out of bound:
         if (blockX < blockSizeX && blockY < blockSizeY) {
-            val block = mViewManger.getBlock(blockX, blockY)
-
-            // TODO should never clicks on bomb on first try: Maybe makeRandomBombBlocks() after first click?
-            if (block.isBomb) {
-                // TODO GameOver
-            }
-            else {
-                // TODO
-            }
+            val block = mViewManger.getBlock(blockX, blockY)    
+            onClickBlock(block)
         }
 
         return false
@@ -187,6 +289,9 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
         return mViewManger.getMainView()
     }
 
+    /* 
+        Synchronized check for thread running.
+     */
     private fun isRunning(): Boolean {
         synchronized(this) {
             return mRunningThread

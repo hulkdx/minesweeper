@@ -31,7 +31,7 @@ class SmartTimer {
         frameCount++
         if (frameCount == OPTIONAL_FPS) {
             val averageFPS = 1000L * frameCount / totalTime
-            Log.d(TAG, "averageFPS: $averageFPS")
+            // Log.d(TAG, "averageFPS: $averageFPS")
             frameCount = 0
             totalTime  = 0
         }

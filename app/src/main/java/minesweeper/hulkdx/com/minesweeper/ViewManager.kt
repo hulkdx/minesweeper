@@ -37,7 +37,6 @@ class ViewManager {
             synchronized(mMainView.holder) {
                 canvas = mMainView.holder.lockCanvas()
                 if (canvas != null) {
-
                     //
                     // Draw views here:
                     //
@@ -66,9 +65,19 @@ class ViewManager {
     fun getMainView(): MainView {
         return mMainView
     }
+    
+    fun getAllBlocks(): Array<Array<BlockView>> {
+        return mBlocks
+    }
 
     fun getBlock(x: Int, y: Int): Block {
         return mBlocks[y][x]
+    }
+
+    fun getBlockOrNull(x: Int, y: Int): Block? {
+        val col = mBlocks.getOrNull(y)
+        
+        return col?.getOrNull(x)
     }
 
     fun getBlockSizeX() : Int {
@@ -77,5 +86,22 @@ class ViewManager {
 
     fun getBlockSizeY() : Int {
         return mBlocks.size
+    }
+    
+    //
+    // Debug purposes:
+    //
+    
+    fun dumpBlocks() {
+        println("_______dumpBlocks()_______")
+        for (j in 0..getBlockSizeY()-1) {
+            println("____________col:$j")
+            for (i in 0..getBlockSizeX()-1) {
+                val block = getBlock(i, j)
+                print("___row:${i}__|")
+                block.dump()
+            }
+        }
+        println("_______dumpBlocks().exit_______")
     }
 }
