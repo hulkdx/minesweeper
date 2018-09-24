@@ -45,6 +45,7 @@ public class GameTest {
             }
         }
 
+        // number of bombs
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
 
@@ -61,7 +62,38 @@ public class GameTest {
         }
     }
 
-    public Board createBoard(int row, int col, int bomb) {
+    @Test
+    public void testBombs() {
+        int maxI = 25; // change to 100 for testing all possible scenario
+        for (int i = 8; i < maxI; i++) {
+            for (int j = 8; j < maxI; j++) {
+                for (int k = 1; k < i*j/3; k++) {
+                    Board b = createBoard(j, i, k);
+                    GameLogic g = new GameLogic(b);
+                    BlockView[][] bv = b.getAllBlockViews();
+
+                    int c = 0;
+                    for (BlockView[] xx: bv) {
+                        for (BlockView yy: xx) {
+                            if (yy.isBomb()) {
+                                c++;
+                            }
+                        }
+                    }
+
+                    assertEquals(c, k);
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testClicks() {
+        // TODO
+        
+    }
+
+    private Board createBoard(int row, int col, int bomb) {
         return new Board(row, col, bomb, null);
     }
 

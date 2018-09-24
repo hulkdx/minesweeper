@@ -35,7 +35,7 @@ class GameLogic(private val mBoard: Board) {
                 // First time clicked the block is a bomb!
                 // Make a new bomb and remove the bomb from this block
                 //
-                makeRandomBombBlocks(1, mBoard.mNumRow, mBoard.mNumCol)
+                mBoard.makeRandomBombBlocks(1, mBoard.mNumRow, mBoard.mNumCol)
                 // Set bomb false and decrease neighbor bombs
                 block.isBomb = false
 
@@ -65,49 +65,5 @@ class GameLogic(private val mBoard: Board) {
      */
     private fun gameOver() {
         // TODO Render GameOver
-    }
-
-    //
-    // TODO: is there a better way of doing this?
-    //
-    fun makeRandomBombBlocks(num_bomb: Int, num_row: Int, num_col: Int) {
-
-        val random = Random()
-
-        var k     = 0
-        var retry = 0
-
-        while (k < num_bomb) {
-            val randomX = random.nextInt(num_row)
-            val randomY = random.nextInt(num_col)
-
-            val block = mBoard.getBlock(randomX, randomY)
-            if (!block.isBomb) {
-                Log.d(Game.TAG, "added a bomb in row:$randomX, col:$randomY")
-                // Update the neighbor bombs:
-                for (i in randomX-1..randomX+1) {
-                    for (j in randomY-1..randomY+1) {
-                        if (i == randomX && j == randomY) continue
-                        val uBlock = mBoard.getBlockOrNull(i, j)
-                        uBlock?.increaseNeighborBombs()
-                    }
-                }
-
-                block.isBomb = true
-                retry        = 0
-                k++
-            }
-            else {
-                retry++
-                // Note: this should never happens.
-                // Note: another way of doing it is, remove the bomb blocks from
-                //       the array.
-                if (retry == 50) {
-                    throw Exception("Cannot make this much bombs!")
-                }
-            }
-        }
-
-        mBoard.dumpBlocks()
     }
 }

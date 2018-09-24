@@ -50,7 +50,6 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
         mViewManager.getMainView().holder.addCallback(this)
         mSmartTimer      = SmartTimer()
         mGameLogic       = GameLogic(mBoard)
-        mGameLogic.makeRandomBombBlocks(num_bomb, num_row, num_col)
     }
 
     // 

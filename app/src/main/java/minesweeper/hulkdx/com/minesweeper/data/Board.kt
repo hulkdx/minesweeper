@@ -2,9 +2,12 @@ package minesweeper.hulkdx.com.minesweeper.data
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.Log
+import minesweeper.hulkdx.com.minesweeper.Game
 import minesweeper.hulkdx.com.minesweeper.util.BitmapHolder
 import minesweeper.hulkdx.com.minesweeper.util.convertDpToPixel
 import minesweeper.hulkdx.com.minesweeper.views.BlockView
+import java.util.*
 
 /**
  * Created by Mohammad Jafarzadeh Rezvan on 24/09/2018.
@@ -56,6 +59,7 @@ class Board(val mNumRow: Int,
                                                    DEFAULT_BLOCK_WIDTH_PX,
                                                    null)
         }
+        makeRandomBombBlocks()
     }
 
     fun getAllBlockViews(): Array<Array<BlockView>> {
@@ -122,6 +126,51 @@ class Board(val mNumRow: Int,
             }
         }
 
+    }
+
+    fun makeRandomBombBlocks() {
+        makeRandomBombBlocks(mNumBomb, mNumRow, mNumCol)
+    }
+
+    fun makeRandomBombBlocks(num_bomb: Int, num_row: Int, num_col: Int) {
+
+        val random = Random()
+
+        var k     = 0
+        var retry = 0
+
+        while (k < num_bomb) {
+            val randomX = random.nextInt(num_row)
+            val randomY = random.nextInt(num_col)
+
+            val block = getBlock(randomX, randomY)
+            if (!block.isBomb) {
+                Log.d(Game.TAG, "added a bomb in row:$randomX, col:$randomY")
+                // Update the neighbor bombs:
+                for (i in randomX-1..randomX+1) {
+                    for (j in randomY-1..randomY+1) {
+                        if (i == randomX && j == randomY) continue
+                        val uBlock = getBlockOrNull(i, j)
+                        uBlock?.increaseNeighborBombs()
+                    }
+                }
+
+                block.isBomb = true
+                retry        = 0
+                k++
+            }
+            else {
+                retry++
+                // Note: this should never happens.
+                // Note: another way of doing it is, remove the bomb blocks from
+                //       the array.
+                if (retry == 50) {
+                    throw Exception("Cannot make this much bombs!")
+                }
+            }
+        }
+
+//        dumpBlocks()
     }
 
     private fun setBitmapForBlockView(blockView: BlockView) {
