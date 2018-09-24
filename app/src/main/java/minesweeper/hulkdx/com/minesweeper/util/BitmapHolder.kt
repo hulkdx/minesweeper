@@ -8,6 +8,8 @@ import minesweeper.hulkdx.com.minesweeper.R
 /**
  * Created by Mohammad Jafarzadeh Rezvan on 24/09/2018.
  */
+
+@Suppress("JoinDeclarationAndAssignment")
 class BitmapHolder(context: Context) {
 
     //

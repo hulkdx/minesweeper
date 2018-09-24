@@ -32,7 +32,7 @@ class ViewManager {
                     // Draw MainView:
                     mMainView.draw(canvas)
                     // Draw Blocks:
-                    val board = mBoard.getAllBlocks()
+                    val board = mBoard.getAllBlockViews()
                     for (y in board) {
                         for (x in y) {
                             x.draw(canvas)

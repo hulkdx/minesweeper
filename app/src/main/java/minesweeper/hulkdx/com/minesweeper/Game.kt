@@ -44,11 +44,6 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
                 num_col:  Int = DEFAULT_COL,
                 num_bomb: Int = DEFAULT_BOMB)
     {
-        // TODO add these rules:
-        // rules based on one website:
-        // width: 8-100
-        // height: 8-100
-        // bombs: 1-1/3square
         mBoard = Board(num_row, num_col, num_bomb, mainActivity)
 
         mViewManager      = ViewManager(mainActivity, mBoard)

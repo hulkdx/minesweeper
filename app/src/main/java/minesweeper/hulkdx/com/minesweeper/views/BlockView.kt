@@ -14,7 +14,7 @@ class BlockView: Block {
         fun createBlocks(num_col: Int,
                          num_row: Int,
                          pixel:   Int,
-                         firstBitmap: Bitmap): Array<Array<BlockView>>
+                         firstBitmap: Bitmap?): Array<Array<BlockView>>
         {
 
             return Array(num_col) { col ->
@@ -25,7 +25,7 @@ class BlockView: Block {
         }
     }
 
-    var currentBitmap: Bitmap
+    var currentBitmap: Bitmap?
     private val paint       = Paint(Paint.ANTI_ALIAS_FLAG)
     private val rectSprite  = Rect()
     private val rectDisplay = Rect()
@@ -34,11 +34,11 @@ class BlockView: Block {
     constructor(arrayRow: Int = 0,
                 arrayCol: Int = 0,
                 px:    Int,
-                firstBitmap: Bitmap): super(arrayRow, arrayCol)
+                firstBitmap: Bitmap?): super(arrayRow, arrayCol)
     {
         this.currentBitmap = firstBitmap
 
-        rectSprite.set(0, 0, currentBitmap.width, currentBitmap.height)
+        rectSprite.set(0, 0, currentBitmap?.width ?: 0, currentBitmap?.height ?: 0)
         val shiftX = px * arrayRow
         val shiftY = px * arrayCol
         rectDisplay.set(shiftX, shiftY, px + shiftX, px + shiftY)

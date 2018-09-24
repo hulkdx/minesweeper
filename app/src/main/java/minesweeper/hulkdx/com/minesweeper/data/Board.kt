@@ -9,6 +9,8 @@ import minesweeper.hulkdx.com.minesweeper.views.BlockView
 /**
  * Created by Mohammad Jafarzadeh Rezvan on 24/09/2018.
  */
+
+@Suppress("UNCHECKED_CAST" /*, "unused"*/)
 class Board(val mNumRow: Int,
             val mNumCol: Int,
             val mNumBomb: Int,
@@ -21,10 +23,20 @@ class Board(val mNumRow: Int,
 
 //    val defaultBlockWidthPx: Int
 
-    private val mBlocks:       Array<Array<Block>>?
+    private val mBlocks:       Array<Array<BlockView>>
     private var mBitmapHolder: BitmapHolder? = null
 
     init {
+        // rules based on a website:
+        // width: 8-100
+        // height: 8-100
+        // bombs: 1-1/3 squares
+        if (mNumRow  !in 8..100 ||
+            mNumCol  !in 8..100 ||
+            mNumBomb !in 1..(mNumRow*mNumCol/3))
+        {
+            throw Exception("wrong argument!")
+        }
 
         if (context != null) {
             DEFAULT_BLOCK_WIDTH_PX = convertDpToPixel(DEFAULT_BLOCK_WIDTH_DP, 
@@ -33,38 +45,40 @@ class Board(val mNumRow: Int,
             mBlocks       = BlockView.createBlocks(mNumCol,
                                                    mNumRow,
                                                    DEFAULT_BLOCK_WIDTH_PX,
-                                                   mBitmapHolder!!.blockBitmap) as Array<Array<Block>>
+                                                   mBitmapHolder!!.blockBitmap)
 
 
         }
         // For testing context is null
         else {
-            mBlocks = Block.createBlocks(mNumCol,
-                                         mNumRow)
+            mBlocks       = BlockView.createBlocks(mNumCol,
+                                                   mNumRow,
+                                                   DEFAULT_BLOCK_WIDTH_PX,
+                                                   null)
         }
     }
 
-    fun getAllBlocks(): Array<Array<BlockView>> {
-        return mBlocks!! as Array<Array<BlockView>>
+    fun getAllBlockViews(): Array<Array<BlockView>> {
+        return mBlocks
     }
 
 
     fun getBlock(x: Int, y: Int): Block {
-        return mBlocks!![y][x]
+        return mBlocks[y][x]
     }
 
     fun getBlockOrNull(x: Int, y: Int): Block? {
-        val col = mBlocks!!.getOrNull(y)
+        val col = mBlocks.getOrNull(y)
 
         return col?.getOrNull(x)
     }
 
     fun getBlockSizeX() : Int {
-        return mBlocks!![0].size
+        return mBlocks[0].size
     }
 
     fun getBlockSizeY() : Int {
-        return mBlocks!!.size
+        return mBlocks.size
     }
 
     //
@@ -73,9 +87,9 @@ class Board(val mNumRow: Int,
 
     fun dumpBlocks() {
         println("_______dumpBlocks()_______")
-        for (j in 0..getBlockSizeY()-1) {
+        for (j in 0 until getBlockSizeY()) {
             println("____________col:$j")
-            for (i in 0..getBlockSizeX()-1) {
+            for (i in 0 until getBlockSizeX()) {
                 val block = getBlock(i, j)
                 print("___row:${i}__|")
                 block.dump()
