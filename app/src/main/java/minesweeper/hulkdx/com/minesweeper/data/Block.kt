@@ -1,4 +1,4 @@
-package minesweeper.hulkdx.com.minesweeper.views
+package minesweeper.hulkdx.com.minesweeper.data
 
 
 /**
@@ -12,10 +12,20 @@ open class Block {
 
     val row: Int
     val col: Int
-    var numNeighborBombs: Int = 0 // TODO
+    var numNeighborBombs: Int = 0
     var isRevealed: Boolean   = false
 
     var isBomb  = false
+
+    companion object {
+        fun createBlocks(num_col: Int, num_row: Int): Array<Array<Block>> {
+            return Array(num_col) { col ->
+                Array(num_row) {
+                    Block(it, col)
+                }
+            }
+        }
+    }
 
     constructor(arrayRow: Int = 0,
                 arrayCol: Int = 0)
