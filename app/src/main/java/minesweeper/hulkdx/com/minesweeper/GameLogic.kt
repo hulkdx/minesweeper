@@ -3,6 +3,7 @@ package minesweeper.hulkdx.com.minesweeper
 import android.util.Log
 import minesweeper.hulkdx.com.minesweeper.data.Board
 import minesweeper.hulkdx.com.minesweeper.data.Block
+import minesweeper.hulkdx.com.minesweeper.util.makeRandomBombBlocksStubSingle
 import minesweeper.hulkdx.com.minesweeper.views.BlockView
 import java.util.*
 
@@ -27,15 +28,16 @@ class GameLogic(private val mBoard: Board) {
 
         // Should never starts with a bomb:
         if (mFirstTimeBlockClicked) {
-            Log.d(TAG, "firstTime clicked, isBomb: ${block.isBomb}, " +
-                    "row:${block.row}, col:${block.col}, numBombs: ${block.numNeighborBombs}")
+            // Log.d(TAG, "firstTime clicked, isBomb: ${block.isBomb}, " +
+            //        "row:${block.row}, col:${block.col}, numBombs: ${block.numNeighborBombs}")
             mFirstTimeBlockClicked = false
             if (block.isBomb) {
                 //
                 // First time clicked the block is a bomb!
                 // Make a new bomb and remove the bomb from this block
                 //
-                mBoard.makeRandomBombBlocks(1, mBoard.mNumRow, mBoard.mNumCol)
+                mBoard.makeRandomBombBlocks(1)
+                // makeRandomBombBlocksStubSingle(mBoard.getAllBlockViews(), mBoard)
                 // Set bomb false and decrease neighbor bombs
                 block.isBomb = false
 
@@ -46,7 +48,7 @@ class GameLogic(private val mBoard: Board) {
                         neighborBlock?.decreaseNeighborBombs()
                     }
                 }
-                mBoard.dumpBlocks()
+                // mBoard.dumpBlocks()
             }
             mBoard.reveal(blockView)
             return

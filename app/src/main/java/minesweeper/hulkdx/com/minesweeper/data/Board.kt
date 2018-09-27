@@ -6,6 +6,7 @@ import android.util.Log
 import minesweeper.hulkdx.com.minesweeper.Game
 import minesweeper.hulkdx.com.minesweeper.util.BitmapHolder
 import minesweeper.hulkdx.com.minesweeper.util.convertDpToPixel
+import minesweeper.hulkdx.com.minesweeper.util.makeRandomBombBlocksStub
 import minesweeper.hulkdx.com.minesweeper.views.BlockView
 import java.util.*
 
@@ -38,7 +39,8 @@ class Board(val mNumRow: Int,
             mNumCol  !in 8..100 ||
             mNumBomb !in 1..(mNumRow*mNumCol/3))
         {
-            throw Exception("wrong argument!")
+            // TODO show it to users
+            throw Exception("wrong argument!, row=$mNumRow, col=$mNumCol, bomb=$mNumBomb")
         }
 
         if (context != null) {
@@ -59,7 +61,9 @@ class Board(val mNumRow: Int,
                                                    DEFAULT_BLOCK_WIDTH_PX,
                                                    null)
         }
-        makeRandomBombBlocks()
+        makeRandomBombBlocks(mNumBomb)
+        // makeRandomBombBlocksStub(mNumBomb, mBlocks, this)
+
     }
 
     fun getAllBlockViews(): Array<Array<BlockView>> {
@@ -71,10 +75,8 @@ class Board(val mNumRow: Int,
         return mBlocks[y][x]
     }
 
-    fun getBlockOrNull(x: Int, y: Int): Block? {
-        val col = mBlocks.getOrNull(y)
-
-        return col?.getOrNull(x)
+    fun getBlockOrNull(row: Int, col: Int): Block? {
+        return mBlocks.getOrNull(col)?.getOrNull(row)
     }
 
     fun getBlockSizeX() : Int {
@@ -90,7 +92,7 @@ class Board(val mNumRow: Int,
     //
 
     fun dumpBlocks() {
-        println("_______dumpBlocks()_______")
+        Log.d(Game.TAG, "_______dumpBlocks()_______")
         for (j in 0 until getBlockSizeY()) {
             println("____________col:$j")
             for (i in 0 until getBlockSizeX()) {
@@ -99,7 +101,7 @@ class Board(val mNumRow: Int,
                 block.dump()
             }
         }
-        println("_______dumpBlocks().exit_______")
+        Log.d(Game.TAG, "_______dumpBlocks().exit_______")
     }
 
     fun reveal(blockView: BlockView) {
@@ -109,71 +111,52 @@ class Board(val mNumRow: Int,
         setBitmapForBlockView(blockView)
 
         if (blockView.numNeighborBombs == 0) {
-            val col = blockView.col
-            val row = blockView.row
 
             // Reveal the nearby blocks:
-            for (j in col-1..col+1) {
-                for (i in row-1..row+1) {
-                    if (i == row && j == col) continue
-                    val neighborBlock = getBlockOrNull(i, j) ?: continue
-
-                    if (!neighborBlock.isRevealed) {
-                        reveal(neighborBlock as BlockView)
-                    }
-
-                }
+            for (neighborBlock in blockView.getNeighborList()) {
+                if (!neighborBlock.isRevealed) reveal(neighborBlock as BlockView)
             }
         }
 
     }
 
-    fun makeRandomBombBlocks() {
-        makeRandomBombBlocks(mNumBomb, mNumRow, mNumCol)
-    }
+    fun makeRandomBombBlocks(num_bomb: Int) {
 
-    fun makeRandomBombBlocks(num_bomb: Int, num_row: Int, num_col: Int) {
+        val blockList = mutableListOf<BlockView>()
+        for (arrayBlocks in mBlocks) {
+            for (b in arrayBlocks) {
+                if (!b.isBomb) blockList.add(b)
+            }
+        }
 
         val random = Random()
 
         var k     = 0
-        var retry = 0
 
         while (k < num_bomb) {
-            val randomX = random.nextInt(num_row)
-            val randomY = random.nextInt(num_col)
+            val randomIndex = random.nextInt(blockList.size)
 
-            val block = getBlock(randomX, randomY)
+            val block = blockList[randomIndex]
             if (!block.isBomb) {
-                Log.d(Game.TAG, "added a bomb in row:$randomX, col:$randomY")
+                Log.d(Game.TAG, "added a bomb in row:${block.row}, col:${block.col}")
                 // Update the neighbor bombs:
-                for (i in randomX-1..randomX+1) {
-                    for (j in randomY-1..randomY+1) {
-                        if (i == randomX && j == randomY) continue
-                        val uBlock = getBlockOrNull(i, j)
-                        uBlock?.increaseNeighborBombs()
-                    }
+                for (x in block.getNeighborList()) {
+                    x.increaseNeighborBombs()
                 }
 
                 block.isBomb = true
-                retry        = 0
                 k++
+                blockList.removeAt(randomIndex)
             }
             else {
-                retry++
-                // Note: this should never happens.
-                // Note: another way of doing it is, remove the bomb blocks from
-                //       the array.
-                if (retry == 50) {
-                    throw Exception("Cannot make this much bombs!")
-                }
+                throw Exception("Cannot make this much bombs!")
             }
         }
 
-//        dumpBlocks()
+        // dumpBlocks()
     }
 
-    private fun setBitmapForBlockView(blockView: BlockView) {
+    fun setBitmapForBlockView(blockView: BlockView) {
         var bitmap: Bitmap? = null
         when (blockView.numNeighborBombs) {
             0 -> {
@@ -215,4 +198,6 @@ class Board(val mNumRow: Int,
         if (bitmap != null)
             blockView.currentBitmap = bitmap
     }
+    
+    
 }

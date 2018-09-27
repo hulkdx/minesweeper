@@ -11,6 +11,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import minesweeper.hulkdx.com.minesweeper.data.Block;
 import minesweeper.hulkdx.com.minesweeper.data.Board;
@@ -88,13 +89,100 @@ public class GameTest {
     }
 
     @Test
-    public void testClicks() {
-        // TODO
-        
+    public void testNeighborList() {
+        Board b = createRandomBoard();
+        BlockView[][] bv = b.getAllBlockViews();
+        for (BlockView[] xx: bv) {
+            for (BlockView block: xx) {
+                // Test neighbor
+                List<Block> neighborList = block.getNeighborList();
+                List<Block> actualNeighbor = new ArrayList<>();
+                for (int j = block.getCol()-1; j <= block.getCol()+1; j++) {
+                    for (int i = block.getRow()-1; i<= block.getRow()+1; i++) {
+                        if (i == block.getRow() && j == block.getCol()) continue;
+                        Block neighborBlock = b.getBlockOrNull(i, j);
+                        if (neighborBlock != null) {
+                            actualNeighbor.add(neighborBlock);
+                        }
+                    }
+                }
+                
+                assertTrue(neighborList.containsAll(actualNeighbor));
+            }
+        }
+    }
+
+    @Test
+    public void testClicksOnBomb() {
+        Board b = createRandomBoard();
+        GameLogic gameLogic = new GameLogic(b);
+
+        // test if it clicks on first bomb
+        BlockView bomb = null;
+        for (BlockView[] yy: b.getAllBlockViews()) {
+            for (BlockView xx: yy) {
+                if (xx.isBomb()) {
+                    bomb = xx;
+                    break;
+                }
+            }
+        }
+        testBombsAndNeighbor(bomb, b, gameLogic);
+    }
+
+    @Test
+    public void testClicksOnNonBomb() {
+        Board b = createRandomBoard();
+        GameLogic gameLogic = new GameLogic(b);
+
+        // test if it clicks on first bomb
+        BlockView bomb = null;
+        for (BlockView[] yy: b.getAllBlockViews()) {
+            for (BlockView xx: yy) {
+                if (!xx.isBomb()) {
+                    bomb = xx;
+                    break;
+                }
+            }
+        }
+        testBombsAndNeighbor(bomb, b, gameLogic);
+    }
+
+    private void testBombsAndNeighbor(BlockView bomb, Board b, GameLogic gameLogic) {
+        assertTrue(bomb != null);
+        gameLogic.onClickBlock(bomb);
+        // Test all of the bombs and neighbor bombs
+        int numBombs = 0;
+        for (BlockView[] yy: b.getAllBlockViews()) {
+            for (BlockView xx: yy) {
+                if (xx.isBomb()) {
+                    numBombs++;
+                }
+                int expectedNeighborBomb = xx.getNumNeighborBombs();
+                int actualNeighborBomb   = 0;
+                for (Block ne: xx.getNeighborList()) {
+                    if (ne.isBomb()) {
+                        actualNeighborBomb++;
+                    }
+                }
+                assertEquals(expectedNeighborBomb, actualNeighborBomb);
+            }
+        }
+        assertEquals(numBombs, b.getMNumBomb());
     }
 
     private Board createBoard(int row, int col, int bomb) {
         return new Board(row, col, bomb, null);
+    }
+
+    private Board createRandomBoard() {
+        Random random = new Random();
+        int min = 8;
+        int max = 100;
+        int row = random.nextInt((max - min) + 1) + min;
+        int col = random.nextInt((max - min) + 1) + min;
+        int bomb = random.nextInt(row*col/3) + 1;
+        return createBoard(row, col, bomb);
     }
 
 }

@@ -18,9 +18,9 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
         internal const val DELAY_CLICK_MILLIS = 50
         
         internal const val OPTIONAL_FPS = 30
-        internal const val DEFAULT_ROW  = 4
-        internal const val DEFAULT_COL  = 5
-        internal const val DEFAULT_BOMB = 5
+        internal const val DEFAULT_ROW  = 8
+        internal const val DEFAULT_COL  = 8
+        internal const val DEFAULT_BOMB = 10
         
         internal const val TAG = "GAME_MAIN"
     }
@@ -57,7 +57,7 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
     //
 
     /* 
-        Rendering and waiting and ... logics.
+        Rendering and waiting and ...
      */
     override fun run() {
         while (isRunning()) {

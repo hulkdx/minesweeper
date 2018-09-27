@@ -2,7 +2,8 @@ package minesweeper.hulkdx.com.minesweeper.util
 
 import android.content.Context
 import android.util.DisplayMetrics
-
+import minesweeper.hulkdx.com.minesweeper.data.Board
+import minesweeper.hulkdx.com.minesweeper.views.BlockView
 
 
 /**

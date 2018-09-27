@@ -1,5 +1,7 @@
 package minesweeper.hulkdx.com.minesweeper.data
 
+import minesweeper.hulkdx.com.minesweeper.views.BlockView
+
 
 /**
  *  Created by Mohammad Jafarzadeh Rezvan on 17/07/2018.
@@ -8,33 +10,15 @@ package minesweeper.hulkdx.com.minesweeper.data
  *  Graphical in BlockView class.
  *
  */
-open class Block {
+open class Block(val row: Int = 0, val col: Int = 0) {
 
-    val row: Int
-    val col: Int
     var numNeighborBombs: Int = 0
     var isRevealed: Boolean   = false
+    private val neighborList = mutableListOf<Block>()
 
     var isBomb  = false
 
-    companion object {
-        fun createBlocks(num_col: Int, num_row: Int): Array<Array<Block>> {
-            return Array(num_col) { col ->
-                Array(num_row) {
-                    Block(it, col)
-                }
-            }
-        }
-    }
-
-    constructor(arrayRow: Int = 0,
-                arrayCol: Int = 0)
-    {
-        row = arrayRow
-        col = arrayCol
-    }
-    
-    /* 
+    /*
         Increase this block's neighbor bombs by 1.
      */
     fun increaseNeighborBombs() {
@@ -51,9 +35,23 @@ open class Block {
     // Debug purposes:
     //
     
-    fun dump() {
-        /* println("row: $row, col:$col") */
-        println("neighborBombs:$numNeighborBombs, isBomb: $isBomb")
+    fun dump() = println("neighborBombs:$numNeighborBombs, isBomb: $isBomb")
+
+
+    override fun toString(): String =
+            "row:$row col:$col bombs:$numNeighborBombs"
+
+    fun addNeighborBlocks(allBlocks: Array<Array<BlockView>>) {
+        for (i in row-1..row+1) {
+            for (j in col-1..col+1) {
+                if (i == row && j == col) continue
+                val uBlock = allBlocks.getOrNull(j)?.getOrNull(i) ?: continue
+                neighborList.add(uBlock)
+            }
+        }
     }
+
+    fun getNeighborList(): List<Block> = neighborList
+
 }
 

@@ -17,11 +17,17 @@ class BlockView: Block {
                          firstBitmap: Bitmap?): Array<Array<BlockView>>
         {
 
-            return Array(num_col) { col ->
+            val blocks = Array(num_col) { col ->
                 Array(num_row) {
                     BlockView(it, col, pixel, firstBitmap)
                 }
             }
+
+            blocks.forEach { it -> it.forEach {
+                it.addNeighborBlocks(blocks)
+            } }
+
+            return blocks
         }
     }
 
