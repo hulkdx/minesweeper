@@ -12,11 +12,13 @@ import minesweeper.hulkdx.com.minesweeper.views.BlockView
  */
 open class Block(val row: Int = 0, val col: Int = 0) {
 
-    var numNeighborBombs: Int = 0
-    var isRevealed: Boolean   = false
+    var numNeighborBombs = 0
+    var isRevealed       = false
+    var isBomb           = false
+    var isGuessedBomb    = false
+
     private val neighborList = mutableListOf<Block>()
 
-    var isBomb  = false
 
     /*
         Increase this block's neighbor bombs by 1.

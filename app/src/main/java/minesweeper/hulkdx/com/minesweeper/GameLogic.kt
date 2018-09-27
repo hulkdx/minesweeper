@@ -23,8 +23,9 @@ class GameLogic(private val mBoard: Board) {
        On Clicking block:
      */
     fun onClickBlock(block: Block) {
-        // Log.d(TAG, "onClickBlock")
+        Log.d(TAG, "onClickBlock $block")
         val blockView: BlockView = block as BlockView
+        if (block.isGuessedBomb || block.isRevealed) return
 
         // Should never starts with a bomb:
         if (mFirstTimeBlockClicked) {
@@ -54,18 +55,36 @@ class GameLogic(private val mBoard: Board) {
             return
         }
         if (block.isBomb) {
+            blockView.isClickedBomb = true
             gameOver()
         }
         else {
             mBoard.reveal(blockView)
-            // TODO reveal 0 bombs and reveal itself:
         }
+        if (mBoard.mScore >= mBoard.mWinningScore) {
+            // TODO
+            Log.d(Game.TAG, "YOU WON!")
+        }
+    }
+
+    fun onLongClickBlock(block: Block) {
+        Log.d(TAG, "onLongClickBlock $block")
+        if (mFirstTimeBlockClicked) {
+            onClickBlock(block)
+            return
+        }
+
+        if (block.isRevealed) return
+
+        block.isGuessedBomb = !block.isGuessedBomb
+        mBoard.setBitmapForBlockViewGuessed(block as BlockView)
     }
 
     /*
         GAME OVER
      */
     private fun gameOver() {
-        // TODO Render GameOver
+        // Reveal all tiles:
+        mBoard.revealAll()
     }
 }

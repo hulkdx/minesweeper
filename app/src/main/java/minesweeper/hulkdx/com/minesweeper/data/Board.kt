@@ -6,7 +6,6 @@ import android.util.Log
 import minesweeper.hulkdx.com.minesweeper.Game
 import minesweeper.hulkdx.com.minesweeper.util.BitmapHolder
 import minesweeper.hulkdx.com.minesweeper.util.convertDpToPixel
-import minesweeper.hulkdx.com.minesweeper.util.makeRandomBombBlocksStub
 import minesweeper.hulkdx.com.minesweeper.views.BlockView
 import java.util.*
 
@@ -14,7 +13,7 @@ import java.util.*
  * Created by Mohammad Jafarzadeh Rezvan on 24/09/2018.
  */
 
-@Suppress("UNCHECKED_CAST" /*, "unused"*/)
+@Suppress("UNCHECKED_CAST", "MemberVisibilityCanBePrivate", "CanBeParameter" /*, "unused"*/)
 class Board(val mNumRow: Int,
             val mNumCol: Int,
             val mNumBomb: Int,
@@ -25,10 +24,11 @@ class Board(val mNumRow: Int,
               var DEFAULT_BLOCK_WIDTH_PX = 0
     }
 
-//    val defaultBlockWidthPx: Int
-
     private val mBlocks:       Array<Array<BlockView>>
     private var mBitmapHolder: BitmapHolder? = null
+
+    var mScore:        Int = 0
+    val mWinningScore: Int
 
     init {
         // rules based on a website:
@@ -63,7 +63,7 @@ class Board(val mNumRow: Int,
         }
         makeRandomBombBlocks(mNumBomb)
         // makeRandomBombBlocksStub(mNumBomb, mBlocks, this)
-
+        mWinningScore = mNumCol * mNumRow - mNumBomb
     }
 
     fun getAllBlockViews(): Array<Array<BlockView>> {
@@ -105,19 +105,35 @@ class Board(val mNumRow: Int,
     }
 
     fun reveal(blockView: BlockView) {
-        blockView.isRevealed = true
+         Log.d("SABA", "revealing $blockView")
+
+        if (blockView.isRevealed || blockView.isGuessedBomb) {
+            // Log.w("SABA", "already reveal, try to reveal it again? $blockView")
+            return
+        }
 
         // change bitmap based on numNeighborBombs
         setBitmapForBlockView(blockView)
+        blockView.isRevealed = true
+        mScore++
 
         if (blockView.numNeighborBombs == 0) {
 
             // Reveal the nearby blocks:
             for (neighborBlock in blockView.getNeighborList()) {
-                if (!neighborBlock.isRevealed) reveal(neighborBlock as BlockView)
+                if (!neighborBlock.isRevealed && !blockView.isGuessedBomb)
+                    reveal(neighborBlock as BlockView)
             }
         }
 
+    }
+
+    fun revealAll() {
+        for (blockArray in mBlocks) {
+            for (block in blockArray) {
+                if (!block.isRevealed) setBitmapForBlockView(block)
+            }
+        }
     }
 
     fun makeRandomBombBlocks(num_bomb: Int) {
@@ -156,43 +172,64 @@ class Board(val mNumRow: Int,
         // dumpBlocks()
     }
 
+    fun setBitmapForBlockViewGuessed(blockView: BlockView) {
+        val bitmap = if (blockView.isGuessedBomb)
+            mBitmapHolder?.bombFlagged
+        else
+            mBitmapHolder?.blockBitmap
+
+        if (bitmap != null)
+            blockView.currentBitmap = bitmap
+    }
+
     fun setBitmapForBlockView(blockView: BlockView) {
         var bitmap: Bitmap? = null
-        when (blockView.numNeighborBombs) {
-            0 -> {
-                bitmap = mBitmapHolder?.zeroBitmap
-            }
+        if (blockView.isRevealed) {
+            return
+        }
+        if (blockView.isBomb) {
+            bitmap = if (blockView.isClickedBomb)
+                mBitmapHolder?.bombDeath
+            else
+                mBitmapHolder?.bombRevealed
+        }
+        else {
+            when (blockView.numNeighborBombs) {
+                0 -> {
+                    bitmap = mBitmapHolder?.zeroBitmap
+                }
 
-            1 -> {
-                bitmap = mBitmapHolder?.oneBitmap
-            }
+                1 -> {
+                    bitmap = mBitmapHolder?.oneBitmap
+                }
 
-            2 -> {
-                bitmap = mBitmapHolder?.twoBitmap
-            }
+                2 -> {
+                    bitmap = mBitmapHolder?.twoBitmap
+                }
 
-            3 -> {
-                bitmap = mBitmapHolder?.threeBitmap
-            }
+                3 -> {
+                    bitmap = mBitmapHolder?.threeBitmap
+                }
 
-            4 -> {
-                bitmap = mBitmapHolder?.fourBitmap
-            }
+                4 -> {
+                    bitmap = mBitmapHolder?.fourBitmap
+                }
 
-            5 -> {
-                bitmap = mBitmapHolder?.fiveBitmap
-            }
+                5 -> {
+                    bitmap = mBitmapHolder?.fiveBitmap
+                }
 
-            6 -> {
-                bitmap = mBitmapHolder?.sixBitmap
-            }
+                6 -> {
+                    bitmap = mBitmapHolder?.sixBitmap
+                }
 
-            7 -> {
-                bitmap = mBitmapHolder?.sevenBitmap
-            }
+                7 -> {
+                    bitmap = mBitmapHolder?.sevenBitmap
+                }
 
-            8 -> {
-                bitmap = mBitmapHolder?.eightBitmap
+                8 -> {
+                    bitmap = mBitmapHolder?.eightBitmap
+                }
             }
         }
         if (bitmap != null)

@@ -29,6 +29,7 @@ class MainView: SurfaceView {
     }
 
     override fun performClick(): Boolean {
+        super.performClick()
         return true
     }
 }

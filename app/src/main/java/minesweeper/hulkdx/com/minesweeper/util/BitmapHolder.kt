@@ -24,7 +24,10 @@ class BitmapHolder(context: Context) {
     val fiveBitmap:  Bitmap 
     val sixBitmap:   Bitmap 
     val sevenBitmap: Bitmap 
-    val eightBitmap: Bitmap 
+    val eightBitmap: Bitmap
+    val bombRevealed: Bitmap
+    val bombDeath:    Bitmap
+    val bombFlagged:  Bitmap
 
     init {
         // Will be decoded once and won't be gced.
@@ -48,5 +51,11 @@ class BitmapHolder(context: Context) {
                 R.drawable.open7)
         eightBitmap  = BitmapFactory.decodeResource(context.resources,
                 R.drawable.open8)
+        bombRevealed = BitmapFactory.decodeResource(context.resources,
+                R.drawable.bombrevealed)
+        bombDeath    = BitmapFactory.decodeResource(context.resources,
+                R.drawable.bombdeath)
+        bombFlagged  = BitmapFactory.decodeResource(context.resources,
+                R.drawable.bombflagged)
     }
 }

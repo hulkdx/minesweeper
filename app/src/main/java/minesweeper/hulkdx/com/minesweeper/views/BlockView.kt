@@ -36,6 +36,8 @@ class BlockView: Block {
     private val rectSprite  = Rect()
     private val rectDisplay = Rect()
 
+    var isClickedBomb: Boolean = false
+
 
     constructor(arrayRow: Int = 0,
                 arrayCol: Int = 0,

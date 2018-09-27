@@ -1,6 +1,5 @@
 package minesweeper.hulkdx.com.minesweeper
 
-import android.annotation.SuppressLint
 import android.util.Log
 import android.view.MotionEvent
 import android.view.SurfaceHolder
@@ -15,12 +14,12 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
 
 
     companion object {
-        internal const val DELAY_CLICK_MILLIS = 50
+        internal const val LONG_CLICK_THRESHOLD_MILLIS = 500
         
         internal const val OPTIONAL_FPS = 30
         internal const val DEFAULT_ROW  = 8
         internal const val DEFAULT_COL  = 8
-        internal const val DEFAULT_BOMB = 10
+        internal const val DEFAULT_BOMB = 1
         
         internal const val TAG = "GAME_MAIN"
     }
@@ -33,6 +32,9 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
     private var mRunningThread = false
     private var mStopped       = false
     private var mLastTimeMsClicked = 0L
+    private var mLastBlockPosX = -1
+    private var mLastBlockPosY = -1
+    private var mIgnoreTouch   = false
 
     //
     // Constructors
@@ -157,30 +159,69 @@ class Game: Runnable, SurfaceHolder.Callback, View.OnTouchListener {
         It will start registering when surface created. And unregistered after 
         its destroyed.
      */
-    @SuppressLint("ClickableViewAccessibility")
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
-        if (System.currentTimeMillis() - mLastTimeMsClicked <= DELAY_CLICK_MILLIS) {
-            Log.d(TAG, "Touched before ${DELAY_CLICK_MILLIS}ms, skippin.")
-            return false
-        }
-        mLastTimeMsClicked = System.currentTimeMillis()
+        if (event == null) return false
 
-        val eventX: Float = event?.x ?: 0F
-        val eventY: Float = event?.y ?: 0F
-
+        val eventX: Float = event.x
+        val eventY: Float = event.y
         val px = Board.DEFAULT_BLOCK_WIDTH_PX
-
-        val blockX = eventX.toInt() / px
-        val blockY = eventY.toInt() / px
         // println("blockX=$blockX, blockY=$blockY")
+        when (event.action) {
 
-        val blockSizeX = mBoard.getBlockSizeX()
-        val blockSizeY = mBoard.getBlockSizeY()
+            MotionEvent.ACTION_UP -> {
+                if (mIgnoreTouch) return false
+                mIgnoreTouch = true
 
-        // Check out of bound:
-        if (blockX < blockSizeX && blockY < blockSizeY) {
-            val block = mBoard.getBlock(blockX, blockY)
-            mGameLogic.onClickBlock(block)
+                // TODO add some conditions:
+                val blockX = eventX.toInt() / px
+                val blockY = eventY.toInt() / px
+
+                if (mLastBlockPosX == blockX && mLastBlockPosY == blockY) {
+                    val block = mBoard.getBlock(mLastBlockPosX, mLastBlockPosY)
+                    if (System.currentTimeMillis() - mLastTimeMsClicked <= LONG_CLICK_THRESHOLD_MILLIS) {
+                        mGameLogic.onClickBlock(block)
+                    }
+                    else {
+                        mGameLogic.onLongClickBlock(block)
+                    }
+                    v?.performClick()
+                }
+            }
+            MotionEvent.ACTION_DOWN -> {
+                // Log.d(TAG, "ACTION_DOWN")
+
+                val blockX = eventX.toInt() / px
+                val blockY = eventY.toInt() / px
+
+                val blockSizeX = mBoard.getBlockSizeX()
+                val blockSizeY = mBoard.getBlockSizeY()
+
+                // Check out of bound:
+                if (blockX < blockSizeX && blockY < blockSizeY) {
+                    mLastBlockPosX = blockX
+                    mLastBlockPosY = blockY
+                    mLastTimeMsClicked = System.currentTimeMillis()
+                    v?.postDelayed({
+                        if (!mIgnoreTouch) {
+                            Log.d(TAG, "postDelayed")
+                            val block = mBoard.getBlock(mLastBlockPosX, mLastBlockPosY)
+                            mGameLogic.onLongClickBlock(block)
+                            mIgnoreTouch = true
+                        }
+                    }, LONG_CLICK_THRESHOLD_MILLIS.toLong())
+                }
+                mIgnoreTouch = false
+                return true
+            }
+            else -> {
+                if (mIgnoreTouch) return false
+
+                val blockX = eventX.toInt() / px
+                val blockY = eventY.toInt() / px
+                if ( !(mLastBlockPosX == blockX && mLastBlockPosY == blockY) ) {
+                    mIgnoreTouch = true
+                }
+            }
         }
 
         return false
